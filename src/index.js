@@ -1,16 +1,38 @@
 const express = require('express');
 const {v4} = require('uuid');
-
+const cors = require('cors');
 const app = express();
 
 /** essa chamada diz para o expressJS que ele deve interpretar JSON 
  * no body params */
+app.use(cors());
 app.use(express.json());
 
 /** Array para guardar informações na memória da aplicação, já que ainda não
  * setamos um banco de dados;
  */
 const projects = [];
+
+function logRequest(request, response, next){
+  const { method, url } = request;
+  const logLabel = `[${method.toUpperCase()}] ${url}`;
+
+  console.time();
+  next(); //próximo middleware
+  console.timeEnd();
+}
+
+function validadeProjectId(request, response, next){
+  const {id} = request.params;
+  if(!isUuid(id)){
+    return response.status(400).json({error: 'Invalid project ID.'});
+  }
+
+  return next();
+}
+
+app.use(logRequest);
+app.use('/project/:id', validadeProjectId);
 
 /** Busca informações no back-end */
 /** Instalei o uuidv4 (yarn add uuidv4) */
